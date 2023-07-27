@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "124591133092",
+    "project_id": "bedroom-e0dc2",
+    "storage_bucket": "bedroom-e0dc2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:124591133092:android:ef856334ae23f5ff027131",
+        "android_client_info": {
+          "package_name": "com.version1.badroom"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "124591133092-cu8nv2u50emd4tsu58kdl243qul60rmd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDY5xIusp5Ap3ilA0MsgraYI1u0zIjKJTk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "124591133092-cu8nv2u50emd4tsu58kdl243qul60rmd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

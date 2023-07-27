@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/mobile_navigation"
+    app:startDestination="@+id/nav_home">
+
+    <fragment
+        android:id="@+id/nav_home"
+        android:name="com.version1.badroom.ui.home.HomeFragment"
+        android:label="@string/menu_home"
+        tools:layout="@layout/fragment_home" />
+
+    <fragment
+        android:id="@+id/nav_gallery"
+        android:name="com.version1.badroom.ui.Dashboard.GalleryFragment"
+        android:label="የአልጋ ዝርዝር"
+        tools:layout="@layout/fragment_gallery" >
+        <action
+            android:id="@+id/action_PackageFragment_to_DetailTravelPackageFragment"
+            app:destination="@id/nav_details" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/nav_details"
+        android:name="com.version1.badroom.ui.detail.DetailFragment"
+        android:label="ዝርዝር መረጃ"
+        tools:layout="@layout/fragment_detail" />
+</navigation>
