@@ -1,76 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    >
-
+    tools:context=".ui.CreateAccountFragment">
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="60sp"
-        android:layout_marginStart="12sp"
         android:gravity="center"
         android:orientation="vertical">
-
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:orientation="horizontal">
-
             <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:scrollbars="none">
-
                 <TextView
-                    android:id="@+id/welcome"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="@string/app_names"
-                    android:ellipsize="marquee"
-                    android:marqueeRepeatLimit="marquee_forever"
-                    android:padding="10dp"
-                    android:scrollHorizontally="true"
-                    android:singleLine="true"
-                    android:textColor="@color/teal_200"
-                    android:textStyle="bold"
-                    android:textSize="22sp" />
+                    android:text="@string/app_name"
+                    android:textSize="20sp"
+                    android:padding="16dp"/>
             </HorizontalScrollView>
         </LinearLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="32sp"
-            android:text="ይግቡ"
-            android:textColor="@color/black"
-            android:textSize="32sp"
-            android:textColorLink="@color/teal_200"
-            android:textStyle="bold" />
-
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/filledTextField1"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginStart="32dp"
-            android:layout_marginTop="34dp"
+            android:layout_marginTop="64dp"
             android:layout_marginEnd="32dp"
             android:hint="መለያ ስም ያስገቡ">
-
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/username"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="96dp"
                 android:inputType="textEmailAddress"
-                android:selectAllOnFocus="true" />
+                android:selectAllOnFocus="true"/>
         </com.google.android.material.textfield.TextInputLayout>
-
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/filledTextField11"
             style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -80,62 +52,60 @@
             android:layout_marginTop="4dp"
             android:layout_marginEnd="32dp"
             android:hint="ሚስጥር ቁጥር ያስገቡ ">
-
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/password"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="96dp"
                 android:inputType="textPassword"
-                android:selectAllOnFocus="true" />
+                android:selectAllOnFocus="true"/>
         </com.google.android.material.textfield.TextInputLayout>
-
+        <com.google.android.material.textfield.TextInputLayout
+            android:id="@+id/filledTextField115"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:layout_marginTop="4dp"
+            android:layout_marginEnd="32dp"
+            android:hint="ሚስጥር ቁጥር ያስገቡ ">
+            <com.google.android.material.textfield.TextInputEditText
+                android:id="@+id/role"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="96dp"
+                android:inputType="textPassword"
+                android:selectAllOnFocus="true"/>
+        </com.google.android.material.textfield.TextInputLayout>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="12sp"
             android:gravity="center"
             android:orientation="horizontal">
-
             <Button
                 android:id="@+id/login"
-                android:layout_width="match_parent"
-                android:layout_height="60sp"
-                android:layout_marginStart="32dp"
-                android:layout_marginTop="14dp"
-                android:layout_marginEnd="32dp"
-                android:text="@string/action_sign_in" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <ProgressBar
-                android:id="@+id/loading"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal"
-                android:layout_marginTop="22sp"
-                android:visibility="gone" />
+                android:text="@string/action_sign_in"
+                />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginTop="182sp"
-            android:layout_marginBottom="12sp"
+            android:layout_gravity="center"
             android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:text="@string/footer_copyright"
-                android:textSize="18sp" />
+            <ProgressBar
+                android:id="@+id/loading"
+                android:foregroundGravity="center_horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:layout_marginTop="64dp"
+                android:layout_marginBottom="64dp"
+                android:visibility="gone" />
         </LinearLayout>
     </LinearLayout>
 
-
-</RelativeLayout>
+</FrameLayout>

@@ -16,8 +16,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.version1.badroom.databinding.FragmentDetailBinding
-import com.version1.badroom.ui.Dashboard.GalleryFragment
-import com.version1.badroom.ui.Dashboard.GalleryViewModel
+import com.version1.badroom.ui.Dashboard.DashboardViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
@@ -37,7 +36,7 @@ class DetailFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val model = ViewModelProvider(requireActivity()).get(GalleryViewModel::class.java)
+        val model = ViewModelProvider(requireActivity()).get(DashboardViewModel::class.java)
 
         _binding = FragmentDetailBinding.inflate(inflater, container, false)
         val root: View = binding.root
@@ -73,7 +72,7 @@ class DetailFragment : Fragment() {
                 db.collection("users").document(it1)
                     .update("exitDate", binding.exitDate.text.toString(),"status",1)
                     .addOnSuccessListener { documentReference ->
-                        Toast.makeText(context, "Updated Users!!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "አልጋው ተለቋል!!", Toast.LENGTH_SHORT).show()
                     }
                     .addOnFailureListener { e ->
                         Toast.makeText(

@@ -9,21 +9,25 @@
         android:id="@+id/nav_home"
         android:name="com.version1.badroom.ui.home.HomeFragment"
         android:label="@string/menu_home"
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/fragment_home"
+        />
 
     <fragment
-        android:id="@+id/nav_gallery"
-        android:name="com.version1.badroom.ui.Dashboard.GalleryFragment"
+        android:id="@+id/nav_dashboard"
+        android:name="com.version1.badroom.ui.Dashboard.DashboardFragment"
         android:label="የአልጋ ዝርዝር"
-        tools:layout="@layout/fragment_gallery" >
+        tools:layout="@layout/fragment_dashboard" >
         <action
             android:id="@+id/action_PackageFragment_to_DetailTravelPackageFragment"
             app:destination="@id/nav_details" />
     </fragment>
 
     <fragment
+
         android:id="@+id/nav_details"
         android:name="com.version1.badroom.ui.detail.DetailFragment"
-        android:label="ዝርዝር መረጃ"
+        android:label="@string/bedlist"
         tools:layout="@layout/fragment_detail" />
+
+
 </navigation>

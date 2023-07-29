@@ -7,7 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
+import android.widget.ProgressBar
 import androidx.core.widget.doAfterTextChanged
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -16,22 +16,22 @@ import androidx.navigation.fragment.findNavController
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.version1.badroom.R
-import com.version1.badroom.databinding.FragmentGalleryBinding
+import com.version1.badroom.databinding.FragmentDashboardBinding
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-class GalleryFragment : Fragment() {
+class DashboardFragment : Fragment() {
 
-    private var _binding: FragmentGalleryBinding? = null
+    private var _binding: FragmentDashboardBinding? = null
 
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
     val db = Firebase.firestore
-
+    var loading: ProgressBar? = null
     @SuppressLint("SuspiciousIndentation")
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -39,27 +39,18 @@ class GalleryFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         val model =
-            ViewModelProvider(requireActivity()).get(GalleryViewModel::class.java)
+            ViewModelProvider(requireActivity()).get(DashboardViewModel::class.java)
 
-        _binding = FragmentGalleryBinding.inflate(inflater, container, false)
+        _binding = FragmentDashboardBinding.inflate(inflater, container, false)
         val root: View = binding.root
-       val inputDate = Date()
-        val inputFormat = SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US)
-        val date = inputFormat.parse(inputDate.toString())
-       val outputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.US)
-        val currentdate = outputFormat.format(date)
 
+         loading = binding.loading
        lifecycleScope.launch {
-           search(currentdate)
+           loading!!.visibility = View.VISIBLE
+           search()
        }
 
-        binding.searchDate.setOnClickListener {
-            view?.let { it1 -> showDateTimePicker(it1) }
-        }
 
-        binding.searchDate.doAfterTextChanged {
-           search(it.toString())
-        }
         binding.frameStackellipseone.setOnClickListener {
             if (!(binding.roomnumber.text.toString().isEmpty())){
                 model.images.value = binding.images.text.toString()
@@ -182,11 +173,15 @@ class GalleryFragment : Fragment() {
         _binding = null
     }
 
-    fun search(date:String){
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        search()
+    }
+    fun search(){
         //read documnet
         db.collection("users")
             .whereEqualTo("status", 0)
-            .whereEqualTo("registerDate",date)
             .get()
             .addOnSuccessListener { result ->
                 for (document in result) {
@@ -274,7 +269,7 @@ class GalleryFragment : Fragment() {
                         binding.images10.text = document.data["imageUrl"].toString()
                         binding.viewEllipse10.setBackgroundResource(R.drawable.click_bed_bd)
                     }
-
+                    loading!!.visibility = View.GONE
                 }
 
             }
@@ -282,26 +277,5 @@ class GalleryFragment : Fragment() {
                 Log.w("TAG", "Error getting documents.", exception)
             }
     }
-    fun showDateTimePicker(view: View) {
-        val currentDateTime = Calendar.getInstance()
-        val year = currentDateTime.get(Calendar.YEAR)
-        val month = currentDateTime.get(Calendar.MONTH)
-        val day = currentDateTime.get(Calendar.DAY_OF_MONTH)
 
-        val datePickerDialog =
-            context?.let {
-                DatePickerDialog(it, { _, selectedYear, selectedMonth, selectedDay ->
-                    val selectedDateTime = Calendar.getInstance()
-                    selectedDateTime.set(selectedYear, selectedMonth, selectedDay)
-
-                    val format = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                    val formattedDate = format.format(selectedDateTime.time)
-                    binding.searchDate.setText(formattedDate)
-                }, year, month, day)
-            }
-
-        if (datePickerDialog != null) {
-            datePickerDialog.show()
-        }
-    }
 }

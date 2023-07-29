@@ -7,7 +7,6 @@ import android.app.DatePickerDialog
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap.CompressFormat
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -18,9 +17,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
+import android.view.animation.AnimationUtils
 import android.widget.ImageView
+import android.widget.ProgressBar
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.camera.core.ImageCapture
@@ -50,21 +49,23 @@ class HomeFragment : Fragment() {
     // This property is only valid between onCreateView and
     // onDestroyView.
     private val binding get() = _binding!!
-    private var selectRoomNumber:Int = 1
+    private var selectRoomNumber: Int = 1
     private lateinit var imageCapture: ImageCapture
     private lateinit var imageView: ImageView
     private val REQUEST_TAKE_PHOTO = 1
-    private val REQUEST_CAMERA_PERMISSION= 1
-    lateinit var photoPath:String
+    private val REQUEST_CAMERA_PERMISSION = 1
+    lateinit var photoPath: String
 
     private var uri: Uri? = null
-    private lateinit var storageRef : StorageReference
+    private lateinit var storageRef: StorageReference
 
     private val cameraRequest = 1888
 
     // storageRef = Firebase.storage.reference
     val db = Firebase.firestore
-    val checkRoomBox:ArrayList<String> = arrayListOf<String>()
+    var loading: ProgressBar? = null
+    var datePicker: DatePickerDialog? = null
+    val checkRoomBox: ArrayList<String> = arrayListOf<String>()
 
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreateView(
@@ -78,25 +79,53 @@ class HomeFragment : Fragment() {
         storageRef = FirebaseStorage.getInstance().getReference("Images")
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
         val root: View = binding.root
+        val textView = binding.appname
+        val fadeInAnimation = AnimationUtils.loadAnimation(context, R.anim.fade_in)
+        textView!!.startAnimation(fadeInAnimation)
 
-        val inputDate = Date()
-        val inputFormat = SimpleDateFormat("EEE MMM dd HH:mm:ss zzz yyyy", Locale.US)
-        val date = inputFormat.parse(inputDate.toString())
-        val outputFormat = SimpleDateFormat("dd/MM/yyyy", Locale.US)
-        val currentdate = outputFormat.format(date)
 
+        loading = binding.loading
         lifecycleScope.launch {
-            search(currentdate)
+            loading!!.visibility = View.VISIBLE
+            search()
         }
-        binding.registerDate.setOnClickListener {
-            view?.let { it1 -> showDateTimePicker(it1, 1) }
+        // initialising the calendar
+        val calendar = Calendar.getInstance()
+
+        // initialising the layout
+        val editText = binding.registerDate
+        val day = calendar[Calendar.DAY_OF_MONTH]
+        val year = calendar[Calendar.YEAR]
+        val month = calendar[Calendar.MONTH]
+
+        // initialising the datepickerdialog
+        datePicker = DatePickerDialog(requireContext())
+
+        // click on edittext to set the value
+        editText!!.setOnClickListener {
+            datePicker = DatePickerDialog(
+                requireContext(),
+                { view, year, month, dayOfMonth -> // adding the selected date in the edittext
+                    editText!!.setText(dayOfMonth.toString() + "/" + (month + 1) + "/" + year)
+                }, year, month, day
+            )
+
+            // set maximum date to be selected as today
+            datePicker!!.datePicker.minDate = calendar.timeInMillis
+
+            // show the dialog
+            datePicker!!.show()
         }
+
+//        binding.registerDate.setOnClickListener {
+//            view?.let { it1 -> showDateTimePicker(it1, 1) }
+//        }
         binding.cbone.setOnClickListener {
             binding.cbone.isClickable = true
             selectRoomNumber = 1
             binding.selectedId.text = "1"
-            binding.cbtwo.isChecked =  checkRoomBox.contains("2")
-            binding.cbthree.isChecked =checkRoomBox.contains("3")
+            binding.cbtwo.isChecked = checkRoomBox.contains("2")
+            binding.cbthree.isChecked = checkRoomBox.contains("3")
             binding.chfour.isChecked = checkRoomBox.contains("4")
             binding.ckfive.isChecked = checkRoomBox.contains("5")
             binding.cksix.isChecked = checkRoomBox.contains("6")
@@ -110,7 +139,7 @@ class HomeFragment : Fragment() {
             binding.cbtwo.isChecked = true
             selectRoomNumber = 2
             binding.selectedId.text = "2"
-            binding.cbthree.isChecked =checkRoomBox.contains("3")
+            binding.cbthree.isChecked = checkRoomBox.contains("3")
             binding.chfour.isChecked = checkRoomBox.contains("4")
             binding.ckfive.isChecked = checkRoomBox.contains("5")
             binding.cksix.isChecked = checkRoomBox.contains("6")
@@ -121,7 +150,7 @@ class HomeFragment : Fragment() {
         }
         binding.cbthree.setOnClickListener {
             binding.cbone.isChecked = checkRoomBox.contains("1")
-            binding.cbtwo.isChecked =  checkRoomBox.contains("2")
+            binding.cbtwo.isChecked = checkRoomBox.contains("2")
 
             binding.cbthree.isChecked = true
             selectRoomNumber = 3
@@ -136,7 +165,7 @@ class HomeFragment : Fragment() {
         }
         binding.chfour.setOnClickListener {
             binding.cbone.isChecked = checkRoomBox.contains("1")
-            binding.cbtwo.isChecked =  checkRoomBox.contains("2")
+            binding.cbtwo.isChecked = checkRoomBox.contains("2")
             binding.cbthree.isChecked = checkRoomBox.contains("3")
             binding.chfour.isChecked = true
             selectRoomNumber = 4
@@ -151,9 +180,9 @@ class HomeFragment : Fragment() {
 
         binding.ckfive.setOnClickListener {
             binding.cbone.isChecked = checkRoomBox.contains("1")
-            binding.cbtwo.isChecked =  checkRoomBox.contains("2")
+            binding.cbtwo.isChecked = checkRoomBox.contains("2")
             binding.cbthree.isChecked = checkRoomBox.contains("3")
-            binding.chfour.isChecked =  checkRoomBox.contains("4")
+            binding.chfour.isChecked = checkRoomBox.contains("4")
             binding.ckfive.isChecked = true
             selectRoomNumber = 5
             binding.selectedId.text = "5"
@@ -165,9 +194,9 @@ class HomeFragment : Fragment() {
         }
         binding.cksix.setOnClickListener {
             binding.cbone.isChecked = checkRoomBox.contains("1")
-            binding.cbtwo.isChecked =  checkRoomBox.contains("2")
+            binding.cbtwo.isChecked = checkRoomBox.contains("2")
             binding.cbthree.isChecked = checkRoomBox.contains("3")
-            binding.chfour.isChecked =  checkRoomBox.contains("4")
+            binding.chfour.isChecked = checkRoomBox.contains("4")
             binding.ckfive.isChecked = checkRoomBox.contains("5")
             binding.cksix.isChecked = true
             selectRoomNumber = 6
@@ -179,9 +208,9 @@ class HomeFragment : Fragment() {
         }
         binding.ckseven.setOnClickListener {
             binding.cbone.isChecked = checkRoomBox.contains("1")
-            binding.cbtwo.isChecked =  checkRoomBox.contains("2")
+            binding.cbtwo.isChecked = checkRoomBox.contains("2")
             binding.cbthree.isChecked = checkRoomBox.contains("3")
-            binding.chfour.isChecked =  checkRoomBox.contains("4")
+            binding.chfour.isChecked = checkRoomBox.contains("4")
             binding.ckfive.isChecked = checkRoomBox.contains("5")
             binding.cksix.isChecked = checkRoomBox.contains("6")
             binding.ckseven.isChecked = true
@@ -193,9 +222,9 @@ class HomeFragment : Fragment() {
         }
         binding.ckeight.setOnClickListener {
             binding.cbone.isChecked = checkRoomBox.contains("1")
-            binding.cbtwo.isChecked =  checkRoomBox.contains("2")
+            binding.cbtwo.isChecked = checkRoomBox.contains("2")
             binding.cbthree.isChecked = checkRoomBox.contains("3")
-            binding.chfour.isChecked =  checkRoomBox.contains("4")
+            binding.chfour.isChecked = checkRoomBox.contains("4")
             binding.ckfive.isChecked = checkRoomBox.contains("5")
             binding.cksix.isChecked = checkRoomBox.contains("6")
             binding.ckseven.isChecked = checkRoomBox.contains("7")
@@ -207,7 +236,7 @@ class HomeFragment : Fragment() {
         }
         binding.cknight.setOnClickListener {
             binding.cbone.isChecked = checkRoomBox.contains("1")
-            binding.cbtwo.isChecked =  checkRoomBox.contains("2")
+            binding.cbtwo.isChecked = checkRoomBox.contains("2")
             binding.cbthree.isChecked = checkRoomBox.contains("3")
             binding.chfour.isChecked = checkRoomBox.contains("4")
             binding.ckfive.isChecked = checkRoomBox.contains("5")
@@ -221,7 +250,7 @@ class HomeFragment : Fragment() {
         }
         binding.ckten.setOnClickListener {
             binding.cbone.isChecked = checkRoomBox.contains("1")
-            binding.cbtwo.isChecked =  checkRoomBox.contains("2")
+            binding.cbtwo.isChecked = checkRoomBox.contains("2")
             binding.cbthree.isChecked = checkRoomBox.contains("3")
             binding.chfour.isChecked = checkRoomBox.contains("4")
             binding.ckfive.isChecked = checkRoomBox.contains("5")
@@ -234,139 +263,107 @@ class HomeFragment : Fragment() {
             binding.selectedId.text = "10"
         }
         binding.send.setOnClickListener {
-          // saveData()
+            // saveData()
             val iv1 = binding.picture
             iv1.buildDrawingCache()
             val bmap = iv1.drawingCache
             val bos = ByteArrayOutputStream()
             bmap.compress(CompressFormat.PNG, 100, bos)
             val bb = bos.toByteArray()
-            val image = Base64.encodeToString(bb,Base64.DEFAULT)
+            val image = Base64.encodeToString(bb, Base64.DEFAULT)
 
-            val user = hashMapOf(
-                "fullname" to binding.fullname.text.toString(),
-                "phonenumber" to binding.txtphonenumber.text.toString(),
-                "kebele" to binding.txtkebele.text.toString(),
-                "housenumber" to binding.txthousenumber.text.toString(),
-                "roomnumber" to selectRoomNumber,
-                "registerDate" to binding.registerDate.text.toString(),
-                "exitDate" to "",
-                "status" to 0,
-                "imageUrl" to image
-            )
-            // Add a new document with a generated ID
-            db.collection("users")
-                .add(user)
-                .addOnSuccessListener { documentReference ->
-                    clearFields()
-                    Toast.makeText(context,"Registered Users!!",Toast.LENGTH_SHORT).show()
-                }
-                .addOnFailureListener { e ->
-                    Toast.makeText(context, "Error adding user document: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
+            val fullname = binding.fullname.text.toString()
+            val phone = binding.txtphonenumber.text.toString()
+            val registerDate = binding.registerDate.text.toString()
+            val kebele = binding.txtkebele.text.toString()
+            val houseNumber = binding.txthousenumber.text.toString()
+            if (fullname.isEmpty()) binding.fullname.error = "ስም ያስገቡ"
+            if (phone.isEmpty()) binding.txtphonenumber.error = "ስልክ ቁጥር ያስገቡ"
+            if (registerDate.isEmpty()) binding.registerDate.error = "የምድገባ ቀን ያስገቡ"
+            if (kebele.isEmpty()) binding.txtkebele.error = "የቀበሌ ቁጥር ያስገቡ"
+            if (houseNumber.isEmpty()) binding.txthousenumber.error = "የቤት ቁጥር ያስገቡ"
+            if (checkValidation()) {
+                loading!!.visibility = View.VISIBLE
+                val user = hashMapOf(
+                    "fullname" to binding.fullname.text.toString(),
+                    "phonenumber" to binding.txtphonenumber.text.toString(),
+                    "kebele" to binding.txtkebele.text.toString(),
+                    "housenumber" to binding.txthousenumber.text.toString(),
+                    "roomnumber" to selectRoomNumber,
+                    "registerDate" to binding.registerDate.text.toString(),
+                    "exitDate" to "",
+                    "status" to 0,
+                    "imageUrl" to image
+                )
+                // Add a new document with a generated ID
+                db.collection("users")
+                    .add(user)
+                    .addOnSuccessListener { documentReference ->
+                        clearFields()
+                        loading!!.visibility = View.GONE
+                        Toast.makeText(context, "ተመዝግቧል!!", Toast.LENGTH_SHORT).show()
+                    }
+                    .addOnFailureListener { e ->
+                        Toast.makeText(
+                            context,
+                            "Error adding user document: ${e.message}",
+                            Toast.LENGTH_SHORT
+                        )
+                            .show()
+                    }
+            }
         }
 
-      binding.captureButton.setOnClickListener {
-           takepicture()
-        //  takePicture(it)
-           }
+        binding.captureButton.setOnClickListener {
+            takepicture()
+            //  takePicture(it)
+        }
         return root
     }
-    private fun clearFields(){
 
-            binding.fullname.text?.clear()
-            binding.registerDate.text?.clear()
-            binding.txtphonenumber.text?.clear()
-            binding.picture.setImageResource(R.drawable.bottom_bar)
-            binding.txtkebele.text?.clear()
-            binding.txthousenumber.text?.clear()
-
+    private fun clearFields() {
+        binding.fullname.text?.clear()
+        binding.registerDate.text?.clear()
+        binding.txtphonenumber.text?.clear()
+        binding.picture.setImageResource(R.drawable.bottom_bar)
+        binding.txtkebele.text?.clear()
+        binding.txthousenumber.text?.clear()
     }
 
-    private fun saveData() {
+    private fun checkValidation(): Boolean {
         val fullname = binding.fullname.text.toString()
         val phone = binding.txtphonenumber.text.toString()
-       // val roomNumber = binding.txtroomnumber.toString().toInt()
+        // val roomNumber = binding.txtroomnumber.toString().toInt()
         val registerDate = binding.registerDate.text.toString()
-
         val kebele = binding.txtkebele.text.toString()
         val houseNumber = binding.txthousenumber.text.toString()
-
-//        if (fullname.isEmpty()) binding.fullname.error = "write a name"
-//        if (phone.isEmpty()) binding.txtphonenumber.error = "write a phone number"
-
-//        val userId = firebaseRef.push().key!!
-    //    var users : Users
-
-
-
-//        if (uri != null) {
-//            uri?.let { uri ->
-//                storageRef.child(userId).putFile(uri)
-//                    .addOnSuccessListener { task ->
-//                        task.metadata!!.reference!!.downloadUrl
-//                            .addOnSuccessListener { url ->
-//                                val imgUrl = url.toString()
-//
-//                                // Create a new user with a first and last name
-//                                val user = hashMapOf(
-//                                    "fullname" to binding.fullname.text.toString(),
-//                                    "phonenumber" to binding.txtphonenumber.text.toString(),
-//                                    "kebele" to binding.txtkebele.text.toString(),
-//                                    "housenumber" to binding.txthousenumber.text.toString(),
-//                                    "roomnumber" to selectRoomNumber,
-//                                    "registerDate" to binding.registerDate.text.toString(),
-//                                    "exitDate" to binding.exitDate.text.toString(),
-//                                    "imageUrl" to imgUrl
-//                                )
-//                                // Add a new document with a generated ID
-//                                db.collection("users")
-//                                    .add(user)
-//                                    .addOnSuccessListener { documentReference ->
-//                                        Log.d("weldsh", "DocumentSnapshot added with ID: ${documentReference.id}")
-//                                        Toast.makeText(context, "Image stored and user created successfully", Toast.LENGTH_SHORT).show()
-//                                    }
-//                                    .addOnFailureListener { e ->
-//                                        Log.w("weldsh", "Error adding document", e)
-//                                        Toast.makeText(context, "Error adding user document: ${e.message}", Toast.LENGTH_SHORT).show()
-//                                    }
-//                            }
-//                            .addOnFailureListener { e ->
-//                                Log.w("weldsh", "Error getting image download URL", e)
-//                                Toast.makeText(context, "Error getting image download URL: ${e.message}", Toast.LENGTH_SHORT).show()
-//                            }
-//                    }
-//                    .addOnFailureListener { e ->
-//                        Log.w("weldsh", "Error uploading image", e)
-//                        Toast.makeText(context, "Error uploading image: ${e.message}", Toast.LENGTH_SHORT).show()
-//                    }
-//            }
-//        }
-
-
-
+        if (fullname.isEmpty() && phone.isEmpty() && registerDate.isEmpty() && kebele.isEmpty() && houseNumber.isEmpty()) {
+            return false
+        }
+        return true
     }
 
     @SuppressLint("SuspiciousIndentation")
-    private fun takepicture(){
+    private fun takepicture() {
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        if (intent.resolveActivity(requireActivity().packageManager) != null){
-            var photoFile:File? = null
-                try {
-                    photoFile = createImageFile()
-                }catch (e:IOException){}
-                if(photoFile != null){
-                    val photoUrl = FileProvider.getUriForFile(
-                        requireContext(),"com.vesrion1.android.fileprovider",
-                        photoFile
-                    )
-                    intent.putExtra(MediaStore.EXTRA_OUTPUT,photoUrl)
-                    startActivityForResult(intent,REQUEST_TAKE_PHOTO)
-                }
+        if (intent.resolveActivity(requireActivity().packageManager) != null) {
+            var photoFile: File? = null
+            try {
+                photoFile = createImageFile()
+            } catch (e: IOException) {
             }
+            if (photoFile != null) {
+                val photoUrl = FileProvider.getUriForFile(
+                    requireContext(), "com.vesrion1.android.fileprovider",
+                    photoFile
+                )
+                intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUrl)
+                startActivityForResult(intent, REQUEST_TAKE_PHOTO)
+            }
+        }
     }
 
-    private fun createImageFile():File ? {
+    private fun createImageFile(): File? {
         val fileName = "myPicture"
         val storageDir = requireActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         val image = File.createTempFile(
@@ -375,12 +372,13 @@ class HomeFragment : Fragment() {
             storageDir
         )
         photoPath = image.absolutePath
-        return  image
+        return image
     }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
-            Log.i("Tag",photoPath)
-            if (data != null){
+            Log.i("Tag", photoPath)
+            if (data != null) {
                 uri = Uri.parse(photoPath)
             }
             binding.picture.setImageURI(Uri.parse(photoPath))
@@ -389,10 +387,19 @@ class HomeFragment : Fragment() {
         }
     }
 
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
         if (requestCode == cameraRequest && grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
             // Camera permission granted
         }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        search()
     }
 
     override fun onDestroyView() {
@@ -400,72 +407,47 @@ class HomeFragment : Fragment() {
         _binding = null
     }
 
-    fun showDateTimePicker(view: View, a: Int) {
-        val currentDateTime = Calendar.getInstance()
-        val year = currentDateTime.get(Calendar.YEAR)
-        val month = currentDateTime.get(Calendar.MONTH)
-        val day = currentDateTime.get(Calendar.DAY_OF_MONTH)
-
-        val datePickerDialog =
-            context?.let {
-                DatePickerDialog(it, { _, selectedYear, selectedMonth, selectedDay ->
-                    val selectedDateTime = Calendar.getInstance()
-                    selectedDateTime.set(selectedYear, selectedMonth, selectedDay)
-
-                    val format = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                    val formattedDate = format.format(selectedDateTime.time)
-                    if (a == 1) binding.registerDate.setText(formattedDate)
-
-                }, year, month, day)
-            }
-
-        if (datePickerDialog != null) {
-            datePickerDialog.show()
-        }
-    }
-    fun search(date:String){
-
+    fun search() {
         //read documnet
         db.collection("users")
             .whereEqualTo("status", 0)
-            .whereEqualTo("registerDate",date)
             .get()
             .addOnSuccessListener { result ->
                 for (document in result) {
                     val index = document.data["roomnumber"].toString()
                     checkRoomBox.add(index)
-                    if(index == "1"){
+                    if (index == "1") {
                         binding.cbone.isClickable = false
                         binding.cbone.isChecked = true
-                    }else if(index == "2"){
-                       binding.cbtwo.isClickable = false
+                    } else if (index == "2") {
+                        binding.cbtwo.isClickable = false
                         binding.cbtwo.isChecked = true
-                    }else if(index == "3") {
+                    } else if (index == "3") {
                         binding.cbthree.isClickable = false
                         binding.cbthree.isChecked = true
-                    }else if(index == "4"){
+                    } else if (index == "4") {
                         binding.chfour.isClickable = false
                         binding.chfour.isChecked = true
-                    }else if(index == "5"){
+                    } else if (index == "5") {
                         binding.ckfive.isClickable = false
                         binding.ckfive.isChecked = true
-                    }else if(index == "6"){
+                    } else if (index == "6") {
                         binding.cksix.isClickable = false
                         binding.cksix.isChecked = true
-                    }else if(index == "7"){
+                    } else if (index == "7") {
                         binding.ckseven.isClickable = false
                         binding.ckseven.isChecked = true
-                    }else if(index == "8"){
+                    } else if (index == "8") {
                         binding.ckeight.isClickable = false
                         binding.ckeight.isChecked = true
-                    }else if(index == "9"){
+                    } else if (index == "9") {
                         binding.cknight.isClickable = false
                         binding.cknight.isChecked = true
-                    }else if(index == "10"){
+                    } else if (index == "10") {
                         binding.ckten.isClickable = false
                         binding.ckten.isChecked = true
                     }
-
+                    loading!!.visibility = View.GONE
                 }
 
             }
